@@ -129,7 +129,11 @@ const server = http.createServer(async (req, res) => {
 
     try {
       const result = await fetchViaPage(targetUrl);
-      if (!result.ok) { res.writeHead(502); return res.end(`Upstream: ${result.status || result.error}`); }
+      if (!result.ok) {
+        const msg = `Upstream error - status: ${result.status || 'N/A'}, error: ${result.error || 'none'}, url: ${targetUrl.slice(0,80)}`;
+        console.error('[proxy]', msg);
+        res.writeHead(502); return res.end(msg);
+      }
       const body = Buffer.from(result.b64, 'base64');
       const ct   = result.ct || 'application/octet-stream';
       const isM3u8 = ct.includes('mpegurl') || targetUrl.includes('.m3u8') || targetUrl.includes('playlist');
