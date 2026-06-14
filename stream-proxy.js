@@ -14,8 +14,7 @@ let browser = null, page = null, currentEmbed = null, browserReady = false;
 async function initBrowser() {
   try {
     browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      headless: 'new',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -61,7 +60,7 @@ async function ensureEmbed(slug, embedId) {
 async function fetchViaPage(targetUrl) {
   return page.evaluate(async u => {
     try {
-      const r = await fetch(u, { headers: { Accept: '*/*' }, mode: 'cors' });
+      const r = await fetch(u, { headers: { Accept: '*/*' } });
       if (!r.ok) return { ok: false, status: r.status };
       const ct  = r.headers.get('content-type') || '';
       const buf = await r.arrayBuffer();
