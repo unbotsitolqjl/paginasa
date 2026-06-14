@@ -36,8 +36,14 @@ async function initBrowser() {
         req.abort();
       } else req.continue();
     });
+    // Cargar una página de embed.st para tener contexto válido de Origin
+    await page.goto('https://embed.st/embed-noads/admin/placeholder/1', {
+      waitUntil: 'domcontentloaded',
+      timeout: 20000,
+    }).catch(() => {});
+    currentEmbed = 'placeholder/1';
     browserReady = true;
-    console.log('[puppeteer] Listo');
+    console.log('[puppeteer] Listo con contexto embed.st');
   } catch (e) {
     console.error('[puppeteer] Error al iniciar:', e.message);
   }
@@ -129,9 +135,10 @@ const server = http.createServer(async (req, res) => {
 
     try {
       const result = await fetchViaPage(targetUrl);
+      console.log(`[proxy] result: ok=${result.ok} status=${result.status} error=${result.error} ct=${result.ct}`);
       if (!result.ok) {
-        const msg = `Upstream error - status: ${result.status || 'N/A'}, error: ${result.error || 'none'}, url: ${targetUrl.slice(0,80)}`;
-        console.error('[proxy]', msg);
+        const msg = `Upstream ${result.status || result.error} — url: ${targetUrl.slice(0,100)}`;
+        console.error('[proxy] FAIL', msg);
         res.writeHead(502); return res.end(msg);
       }
       const body = Buffer.from(result.b64, 'base64');
